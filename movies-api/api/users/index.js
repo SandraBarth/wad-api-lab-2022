@@ -3,6 +3,7 @@ import User from './userModel';
 import asyncHandler from 'express-async-handler';
 import jwt from 'jsonwebtoken';
 import movieModel from '../movies/movieModel';
+import users from '../../seedData/users';
 
 const router = express.Router(); // eslint-disable-line
 
@@ -28,6 +29,7 @@ router.post('/',asyncHandler( async (req, res, next) => {
     }
     if (req.query.action === 'register') {
       await User.create(req.body);
+      if(req.body.password)
       res.status(201).json({code: 201, msg: 'Successful created new user.'});
     } else {
       const user = await User.findByUserName(req.body.username);
@@ -64,9 +66,13 @@ router.post('/:userName/favourites', asyncHandler(async (req, res) => {
   const userName = req.params.userName;
   const movie = await movieModel.findByMovieDBId(newFavourite);
   const user = await User.findByUserName(userName);
-  await user.favourites.push(movie._id);
-  await user.save(); 
-  res.status(201).json(user); 
-}));
+
+    if(user.favourites.indexOf(movie._id) == -1){
+      await user.favourites.push(movie._id);
+    await user.save(); 
+    res.status(201).json(user);
+    }
+    res.status(404).json({ code: 404, msg: 'Movie is already a favourite' });
+  }));
 
 export default router;
