@@ -28,9 +28,13 @@ router.post('/',asyncHandler( async (req, res, next) => {
       return next();
     }
     if (req.query.action === 'register') {
+      const regex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{5,}$/;
+      if(req.body.password.match(regex)){
       await User.create(req.body);
-      if(req.body.password)
       res.status(201).json({code: 201, msg: 'Successful created new user.'});
+      } else {
+        res.status(401).json({success: false, msg: 'Password is too weak.'});
+      }
     } else {
       const user = await User.findByUserName(req.body.username);
         if (!user) return res.status(401).json({ code: 401, msg: 'Authentication failed. User not found.' });
